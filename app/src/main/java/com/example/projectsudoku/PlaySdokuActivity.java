@@ -1,20 +1,42 @@
 package com.example.projectsudoku;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 
 public class PlaySdokuActivity extends AppCompatActivity {
+    private static final int WHITE = 0;
+    private static final int BLACK = 1;
     private static final int SIZE = 9;
+
+    private RelativeLayout rtMain;
+    private LinearLayout llMain;
+
     private ArrayList<TextView> numList = new ArrayList<>();
     private TextView[][] tvList = new TextView[9][9];
     private LinearLayout[][] llList = new LinearLayout[9][9];
+
+    private int color;
+    private int clearColor;
+    private int choiceColor;
+
+    final String[] words = new String[] {"흰색", "검정"};
 
 
     private Integer[] tvNumId = new Integer[]
@@ -50,28 +72,95 @@ public class PlaySdokuActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play_sdoku);
 
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+
         findViewByIdFunc();
 
         eventHandlerFunc();
+
+        setBackgroundColor(0);
 
 
 
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_toolbar, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_info:
+                showDialogThemes();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void showDialogThemes() {
+        new AlertDialog.Builder(this).setTitle("선택").setSingleChoiceItems(words, 0, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                setBackgroundColor(which);
+
+            }
+        }).setPositiveButton("closed", null).show();
+
+    }
+
+    private void setBackgroundColor(int choice){
+        switch(choice){
+            case WHITE:
+                rtMain.setBackgroundColor(Color.WHITE);
+                llMain.setBackgroundColor(Color.WHITE);
+                color = 0xFFDCDCDC;
+                clearColor = Color.WHITE;
+                choiceColor = 0xFF00BFFF;
+                break;
+            case BLACK:
+                rtMain.setBackgroundColor(0xFF272424);
+                color = 0xFF9A9A9A;
+                clearColor = 0xFF272424;
+                choiceColor = 0xFF00BFFF;
+                break;
+            default:
+                break;
+        }
+
+        for(int i = 0; i < llList.length; i++){
+            for(int k = 0; k < llList.length; k++){
+                tvList[i][k].setBackgroundColor(clearColor);
+            }
+        }
+    }
+
+
+
+
     private void eventHandlerFunc() {
 
         //스도쿠판 터치시 색칠
-        for(int i = 0; i < SIZE; i++){
+        for (int i = 0; i < SIZE; i++) {
             final int x = i;
-            for(int j = 0; j < SIZE; j++){
+            for (int j = 0; j < SIZE; j++) {
                 final int y = j;
 
                 tvList[i][j].setOnClickListener(view -> {
-                    //터치시 이전에 색칠된 칸 색칠 지우기위한 포지션
+
 
                     deleteAway();
 
-                    findAway(x,y);
+                    findAway(x, y);
+                    tvList[x][y].setBackgroundColor(choiceColor);
+                    //색칠된거 지우는 위치 숫자넣는위치 저장
                     x_position = x;
                     y_position = y;
                 });
@@ -79,8 +168,8 @@ public class PlaySdokuActivity extends AppCompatActivity {
         }//end of for
 
         //터치시 해당 위치에 숫자입력
-        for(int i = 0; i < numList.size(); i++){
-            final int num = i+1;
+        for (int i = 0; i < numList.size(); i++) {
+            final int num = i + 1;
             numList.get(i).setOnClickListener(v -> {
                 tvList[x_position][y_position].setText(String.valueOf(num));
             });
@@ -89,51 +178,54 @@ public class PlaySdokuActivity extends AppCompatActivity {
 
     private void findViewByIdFunc() {
 
-        for(int i = 0; i < tvId.length; i++){
-            for(int j = 0; j < tvId.length; j++){
+        rtMain = findViewById(R.id.rtMain);
+        llMain = findViewById(R.id.llMain);
+
+        for (int i = 0; i < tvId.length; i++) {
+            for (int j = 0; j < tvId.length; j++) {
                 tvList[i][j] = findViewById(tvId[i][j]);
                 llList[i][j] = findViewById(llId[i][j]);
             }
         }
 
-        for(int i = 0; i < tvNumId.length; i++){
+        for (int i = 0; i < tvNumId.length; i++) {
             numList.add(findViewById(tvNumId[i]));
         }
     }
 
     //이전에 색칠된 칸 색칠 지우기
-    private void deleteAway(){
-        int block_X = (x_position/3)*3;
-        int block_Y = (y_position/3)*3;
+    private void deleteAway() {
+        int block_X = (x_position / 3) * 3;
+        int block_Y = (y_position / 3) * 3;
 
 
-        for (int b_x = block_X; b_x < block_X+3; b_x++){
-            for(int b_y = block_Y; b_y < block_Y+3; b_y++){
-                tvList[b_x][b_y].setBackgroundColor(Color.WHITE);
+        for (int b_x = block_X; b_x < block_X + 3; b_x++) {
+            for (int b_y = block_Y; b_y < block_Y + 3; b_y++) {
+                tvList[b_x][b_y].setBackgroundColor(clearColor);
             }
         }
 
-        for(int k = 0; k < SIZE; k++){
-            tvList[x_position][k].setBackgroundColor(Color.WHITE);
-            tvList[k][y_position].setBackgroundColor(Color.WHITE);
+        for (int k = 0; k < SIZE; k++) {
+            tvList[x_position][k].setBackgroundColor(clearColor);
+            tvList[k][y_position].setBackgroundColor(clearColor);
         }
     }
 
     //터치시 해당되는 9칸과 가로 세로 색칠
     private void findAway(int x, int y) {
-        int block_X = (x/3)*3;
-        int block_Y = (y/3)*3;
+        int block_X = (x / 3) * 3;
+        int block_Y = (y / 3) * 3;
 
 
-        for (int b_x = block_X; b_x < block_X+3; b_x++){
-            for(int b_y = block_Y; b_y < block_Y+3; b_y++){
-                tvList[b_x][b_y].setBackgroundColor(0xFF778899);
+        for (int b_x = block_X; b_x < block_X + 3; b_x++) {
+            for (int b_y = block_Y; b_y < block_Y + 3; b_y++) {
+                tvList[b_x][b_y].setBackgroundColor(color);
             }
         }
 
-        for(int k = 0; k < SIZE; k++){
-            tvList[x][k].setBackgroundColor(0xFF778899);
-            tvList[k][y].setBackgroundColor(0xFF778899);
+        for (int k = 0; k < SIZE; k++) {
+            tvList[x][k].setBackgroundColor(color);
+            tvList[k][y].setBackgroundColor(color);
         }
     }
 }
