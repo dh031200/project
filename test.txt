@@ -1,0 +1,8 @@
+pandas
+numpy
+gpustat
+seaborn
+scikit-learn
+plotly
+plotly-express
+tensorflow
